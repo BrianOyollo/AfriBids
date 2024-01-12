@@ -6,21 +6,22 @@ from .database import Base
 class User(Base):
     __tablename__= 'users'
     user_id = Column(Integer, primary_key=True, nullable=False)
-    username = Column(String,nullable=False)
+    username = Column(String,nullable=False, unique=True)
+    display_name = Column(String, nullable=False, unique=False)
     email = Column(String, unique=True, nullable=False)
     phone = Column(String, unique=True, nullable=True)
     password = Column(String, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
     location = Column(String)
-    auctions = relationship('Auction')
-    bids = relationship("Bid")
+    auctions = relationship('Auction', back_populates='user')
+    bids = relationship("Bid", back_populates='bidder')
     
 
 class ItemCategory(Base):
     __tablename__='item_categories'
     category_id = Column(Integer, nullable=False, primary_key=True)
     category_name = Column(String, nullable=False)
-    auctions = relationship('Auction')
+    auctions = relationship('Auction', back_populates='itemcategory')
 
 
 class Auction(Base):
@@ -36,10 +37,10 @@ class Auction(Base):
     reserve_price = Column(Float, nullable=False, server_default=text('0.00'))
     auction_status = Column(Enum("Ongoing","Sold","Cancelled","Reserve price not met", name="auction_status_enum"), default="Ongoing")
     seller = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
-    user = relationship('User')
-    itemcategory = relationship('ItemCategory')
-    images = relationship('AuctionImages')
-    bids = relationship("Bid")
+    user = relationship('User', back_populates='auctions')
+    itemcategory = relationship('ItemCategory', back_populates='auctions')
+    images = relationship('AuctionImages', back_populates='auction')
+    bids = relationship("Bid", back_populates='auction')
 
 
 class AuctionImages(Base):
@@ -48,7 +49,7 @@ class AuctionImages(Base):
     image_description = Column(Integer, nullable=True)
     image_url = Column(String, nullable=False)
     auction_id = Column(Integer, ForeignKey("auctions.auction_id", ondelete='CASCADE'), nullable=True)
-    auction = relationship('Auction')
+    auction = relationship('Auction', back_populates='images')
 
 
 class Bid(Base):
@@ -58,5 +59,5 @@ class Bid(Base):
     bidder_id = Column(Integer, ForeignKey('users.user_id', ondelete='CASCADE'), nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
     amount = Column(Float, nullable=False)
-    auction = relationship('Auction')
-    bidder = relationship("User")
+    auction = relationship('Auction', back_populates='bids')
+    bidder = relationship("User", back_populates='bids')
