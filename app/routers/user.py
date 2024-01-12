@@ -71,3 +71,17 @@ async def update_user_profile(user_id:int, profile_update:schemas.UpdateUserProf
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{profile_update.email} is already in use. Please try a different email!")
         
     return user_profile
+
+@router.delete("/{user_id}/delete", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_account(user_id:int, db:Session=Depends(get_db)):
+    user_query = db.query(models.User).filter(models.User.user_id == user_id)
+    user_account = user_query.first()
+
+    if user_account == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found!')
+    
+    # check if current user == account's owner
+
+    user_query.delete(synchronize_session=False)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
