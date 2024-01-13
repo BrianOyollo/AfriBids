@@ -76,3 +76,12 @@ def test_create_users_with_similar_display_names(client):
     assert created_user2['display_name'] == dummy_user2['display_name']
     assert created_user2['password'] == dummy_user2['password']
     assert second_username != first_username
+
+
+def test_delete_user(client, test_user):
+    response = client.delete(f"/users/{test_user['user_id']}/delete")
+    assert response.status_code == 204
+
+def test_delete_nonexistent_user(client):
+    response = client.delete("/users/678/delete")
+    assert response.status_code == 404
