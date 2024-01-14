@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, AwareDatetime
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from dateutil import parser
 
@@ -14,6 +14,7 @@ class UserOut(BaseModel):
     display_name:str
     location:str|None=None
     created_at:datetime
+    is_active:bool
 
 class UpdateUserProfile(BaseModel):
     display_name:str|None=None

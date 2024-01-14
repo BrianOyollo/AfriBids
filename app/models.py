@@ -11,8 +11,8 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
     phone = Column(String, unique=True, nullable=True)
     password = Column(String, nullable=False)
-    is_staff = Column(Boolean, nullable=False, default=False)
-    is_active = Column(Boolean, nullable=False, default=True) 
+    is_staff = Column(Boolean, nullable=False, server_default=text('false'))
+    is_active = Column(Boolean, nullable=False, server_default=text('true')) 
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
     location = Column(String)
 
