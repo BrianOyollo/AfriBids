@@ -11,8 +11,11 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
     phone = Column(String, unique=True, nullable=True)
     password = Column(String, nullable=False)
+    is_staff = Column(Boolean, nullable=False, default=False)
+    is_active = Column(Boolean, nullable=False, default=True) 
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
     location = Column(String)
+
     auctions = relationship('Auction', back_populates='user')
     bids = relationship("Bid", back_populates='bidder')
     
@@ -21,7 +24,10 @@ class ItemCategory(Base):
     __tablename__='item_categories'
     category_id = Column(Integer, nullable=False, primary_key=True)
     category_name = Column(String, nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
     auctions = relationship('Auction', back_populates='itemcategory')
+    
+    
 
 
 class Auction(Base):

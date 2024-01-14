@@ -15,6 +15,6 @@ app.include_router(auction.router)
 
 @app.get("/")
 async def root():
-    return {'message':'Hellow from AfriBids!!'}
+    return {'message':'Hello from AfriBids!!'}
 
 
