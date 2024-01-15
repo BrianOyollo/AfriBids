@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from datetime import datetime
 from dateutil import parser
 
@@ -9,6 +9,8 @@ class UserRegistration(BaseModel):
     password:str
 
 class UserOut(BaseModel):
+    model_config: ConfigDict(from_attributes=True) 
+
     user_id:int
     username:str
     display_name:str
@@ -30,12 +32,39 @@ class UserProfileOut(BaseModel):
     created_at:datetime
     location:str|None=None
 
-class AuctionIn(BaseModel):
-    auction_id:str
+class ItemCategoryResponse(BaseModel):
+    category_id:int
+    category_name:str
+
+class AuctionStatusResponse(BaseModel):
+    status_id:int
+    status:str
+    status_description:str
+
+class ReserveStatusResponse(BaseModel):
+    status_id:int
+    status:str
+    status_description:str
+
+class NewAuction(BaseModel):
     item_name:str
     item_description:str
     item_category:int
-    reserve_status:str
-    reserve_price:float
-    auction_status:str
+    reserve_status:int
+    reserve_price:float|None=None
     seller:int
+
+
+class GeneralAuctionResponse(BaseModel):
+
+    auction_id:int
+    item_name:str
+    item_description:str
+    start_time:datetime
+    end_time:datetime
+    current_bid:float
+    reserve_price:float
+    itemcategory:ItemCategoryResponse
+    reservestatus:ReserveStatusResponse
+    auctionstatus:AuctionStatusResponse
+    user:UserOut
