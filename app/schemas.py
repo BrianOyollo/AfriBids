@@ -56,7 +56,7 @@ class NewAuction(BaseModel):
 
 
 class GeneralAuctionResponse(BaseModel):
-
+    model_config = ConfigDict(from_attributes=True)
     auction_id:int
     item_name:str
     item_description:str

@@ -15,8 +15,19 @@ router = APIRouter(
 
 
 @router.get("/",response_model=List[schemas.GeneralAuctionResponse],status_code=status.HTTP_200_OK)
-async def all_auctions(db:Session=Depends(get_db)):
+async def all_auctions(db:Session=Depends(get_db), q:str|None=None):
     auctions = (
+        db.query(models.Auction)
+        .join(models.User, models.Auction.seller == models.User.user_id, isouter=True)
+        .join(models.ItemCategory, models.Auction.item_category == models.ItemCategory.category_id, isouter=True)
+        .join(models.ReserveStatus, models.Auction.reserve_status == models.ReserveStatus.status_id, isouter=True)
+        .join(models.AuctionStatus, models.Auction.auction_status == models.AuctionStatus.status_id, isouter=True)
+        ).all()
+    return auctions
+
+@router.get("/{auction_id}", response_model=schemas.GeneralAuctionResponse, status_code=status.HTTP_200_OK)
+async def get_auction(auction_id:int, db:Session=Depends(get_db)):
+    auction = (
         db.query(models.Auction)
         .join(models.User, models.Auction.seller == models.User.user_id, isouter=True)
         .join(models.ItemCategory, models.Auction.item_category == models.ItemCategory.category_id, isouter=True)
@@ -28,10 +39,8 @@ async def all_auctions(db:Session=Depends(get_db)):
             joinedload(models.Auction.auctionstatus),
             joinedload(models.Auction.user),
 
-        ).all()
-        
-    
-    return auctions
+        ).filter(models.Auction.auction_id == auction_id).first()
+    return auction
 
 @router.post("/new", status_code=status.HTTP_201_CREATED)
 async def new_auction(auction:schemas.NewAuction, db:Session=Depends(get_db)):
