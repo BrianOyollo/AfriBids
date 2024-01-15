@@ -1,8 +1,8 @@
 """create base tables
 
-Revision ID: fa715e993d7c
+Revision ID: 8fa1e6da94a1
 Revises: 
-Create Date: 2024-01-10 13:48:32.243444
+Create Date: 2024-01-15 08:49:08.114284
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'fa715e993d7c'
+revision: str = '8fa1e6da94a1'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -23,16 +23,24 @@ def upgrade() -> None:
     op.create_table('item_categories',
     sa.Column('category_id', sa.Integer(), nullable=False),
     sa.Column('category_name', sa.String(), nullable=False),
+    sa.Column('created_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('category_id')
     )
     op.create_table('users',
     sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('username', sa.String(), nullable=True),
+    sa.Column('username', sa.String(), nullable=False),
+    sa.Column('display_name', sa.String(), nullable=False),
     sa.Column('email', sa.String(), nullable=False),
+    sa.Column('phone', sa.String(), nullable=True),
     sa.Column('password', sa.String(), nullable=False),
+    sa.Column('is_staff', sa.Boolean(), server_default=sa.text('false'), nullable=False),
+    sa.Column('is_active', sa.Boolean(), server_default=sa.text('true'), nullable=False),
     sa.Column('created_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('location', sa.String(), nullable=True),
     sa.PrimaryKeyConstraint('user_id'),
-    sa.UniqueConstraint('email')
+    sa.UniqueConstraint('email'),
+    sa.UniqueConstraint('phone'),
+    sa.UniqueConstraint('username')
     )
     op.create_table('auctions',
     sa.Column('auction_id', sa.Integer(), nullable=False),
@@ -42,9 +50,9 @@ def upgrade() -> None:
     sa.Column('start_time', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('end_time', sa.TIMESTAMP(timezone=True), nullable=False),
     sa.Column('current_bid', sa.Float(), server_default=sa.text('0.00'), nullable=False),
-    sa.Column('reserve_status', sa.Enum('Reserve', 'No Reserve', name='reserve_status_enum'), nullable=False),
+    sa.Column('reserve_status', sa.Enum('Reserve', 'No Reserve', name='reserve_status_options'), nullable=False),
     sa.Column('reserve_price', sa.Float(), server_default=sa.text('0.00'), nullable=False),
-    sa.Column('auction_status', sa.Enum('Ongoing', 'Sold', 'Cancelled', 'Reserve price not met', name='auction_status_enum'), nullable=True),
+    sa.Column('auction_status', sa.Enum('Ongoing', 'Sold', 'Cancelled', 'Reserve price not met', name='auction_status_options'), nullable=True),
     sa.Column('seller', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['item_category'], ['item_categories.category_id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['seller'], ['users.user_id'], ondelete='CASCADE'),

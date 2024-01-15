@@ -37,7 +37,8 @@ async def register_user(new_user:schemas.UserRegistration, db:Session=Depends(ge
         db.refresh(user)
         return user
     
-    except IntegrityError:
+    except Exception as e:
+        print(e)
         db.rollback()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User with that email already exists. Please try a different one")
     

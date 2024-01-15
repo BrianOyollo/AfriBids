@@ -29,3 +29,13 @@ class UserProfileOut(BaseModel):
     phone:str|None=None
     created_at:datetime
     location:str|None=None
+
+class AuctionIn(BaseModel):
+    auction_id:str
+    item_name:str
+    item_description:str
+    item_category:int
+    reserve_status:str
+    reserve_price:float
+    auction_status:str
+    seller:int
