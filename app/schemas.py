@@ -32,20 +32,49 @@ class UserProfileOut(BaseModel):
     created_at:datetime
     location:str|None=None
 
+# item categories
 class ItemCategoryResponse(BaseModel):
     category_id:int
     category_name:str
 
+class NewItemCategory(BaseModel):
+    category_name:str
+
+class UpdateItemCategory(BaseModel):
+    category_name:str|None=None
+
+
+# auction status
 class AuctionStatusResponse(BaseModel):
     status_id:int
     status:str
     status_description:str
+
+class NewAuctionStatus(BaseModel):
+    status:str
+    status_description:str
+
+class UpdateAuctionStatus(BaseModel):
+    status:str|None=None
+    status_description:str|None=None
+
+
+# reserve status
+class NewReserveStatus(BaseModel):
+    status:str
+    status_description:str
+
+class UpdateReserveStatus(BaseModel):
+    status:str|None=None
+    status_description:str|None=None
 
 class ReserveStatusResponse(BaseModel):
     status_id:int
     status:str
     status_description:str
 
+
+# auctions
 class NewAuction(BaseModel):
     item_name:str
     item_description:str
@@ -68,3 +97,6 @@ class GeneralAuctionResponse(BaseModel):
     reservestatus:ReserveStatusResponse
     auctionstatus:AuctionStatusResponse
     user:UserOut
+
+class CancelAuction(BaseModel):
+    reason:str

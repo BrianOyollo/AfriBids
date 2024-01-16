@@ -7,6 +7,7 @@ import os
 from dotenv import load_dotenv
 from app.database import Base, get_db
 from app.main import app
+from app import models
 
 
 load_dotenv()
@@ -58,3 +59,4 @@ def test_user(client):
     test_user = response.json()
     test_user['password'] = dummy_user['password']
     return test_user
+

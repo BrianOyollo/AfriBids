@@ -40,6 +40,10 @@ async def get_auction(auction_id:int, db:Session=Depends(get_db)):
             joinedload(models.Auction.user),
 
         ).filter(models.Auction.auction_id == auction_id).first()
+    
+    if auction == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Auction does not exists!")
+    
     return auction
 
 @router.post("/new", status_code=status.HTTP_201_CREATED)
@@ -58,3 +62,22 @@ async def new_auction(auction:schemas.NewAuction, db:Session=Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Error creating an auction!')
 
     
+@router.put("/{auction_id}/cancel", status_code=status.HTTP_200_OK)
+async def cancel_auction(auction_id:int,cancel_auction:schemas.CancelAuction, db:Session=Depends(get_db)):
+    auction = db.query(models.Auction).filter(models.Auction.auction_id == auction_id).first()
+
+    if auction == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Auction not found!")
+    
+    if auction.auction_status != 1:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Only ongoing auctions can be cancelled")
+    
+    try:
+        auction.auction_status = 3 # or status_id for 'cancelled'
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error countered while cancelling the auction. Please try again")
+
+    cancelled_auction = db.query(models.Auction).filter(models.Auction.auction_id == auction_id).first()
+    return cancelled_auction, cancel_auction
