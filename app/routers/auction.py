@@ -46,7 +46,7 @@ async def get_auction(auction_id:int, db:Session=Depends(get_db)):
     
     return auction
 
-@router.post("/new", status_code=status.HTTP_201_CREATED)
+@router.post("/new", response_model=schemas.GeneralAuctionResponse,status_code=status.HTTP_201_CREATED)
 async def new_auction(auction:schemas.NewAuction, db:Session=Depends(get_db)):
     new_auction = models.Auction(**auction.model_dump())
 
