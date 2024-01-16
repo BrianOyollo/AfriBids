@@ -86,7 +86,7 @@ class NewAuction(BaseModel):
 
 class GeneralAuctionResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    
+
     auction_id:int
     item_name:str
     item_description:str
@@ -100,4 +100,4 @@ class GeneralAuctionResponse(BaseModel):
     user:UserOut
 
 class CancelAuction(BaseModel):
-    reason:str
+    reason:str|None=None
