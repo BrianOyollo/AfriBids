@@ -12,3 +12,7 @@ router = APIRouter(
     prefix='/bids',
     tags=['Bids']
 )
+
+@router.get("/{bid_id}")
+async def get_bids():
+    pass
