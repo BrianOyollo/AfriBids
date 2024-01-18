@@ -1,8 +1,21 @@
 from pydantic import BaseModel, EmailStr, ConfigDict
 from datetime import datetime
 from dateutil import parser
+from typing import Union, List
 
 
+#  bids
+class NewBid(BaseModel):
+    amount:float
+    
+class BidResponse(BaseModel):
+    bid_id:int
+    bidder: Union[int, 'UserOut']
+    auction_id:int
+    created_at:datetime
+    amount:float
+
+# users   
 class UserRegistration(BaseModel):
     email:EmailStr
     display_name:str
@@ -17,6 +30,7 @@ class UserOut(BaseModel):
     location:str|None=None
     created_at:datetime
     is_active:bool
+    # bids:BidResponse
 
 class UpdateUserProfile(BaseModel):
     display_name:str|None=None
@@ -73,7 +87,6 @@ class ReserveStatusResponse(BaseModel):
     status:str
     status_description:str
 
-
 # auctions
 class NewAuction(BaseModel):
     item_name:str
@@ -94,6 +107,7 @@ class GeneralAuctionResponse(BaseModel):
     end_time:datetime
     current_bid:float
     reserve_price:float
+    bids: BidResponse
     itemcategory:ItemCategoryResponse
     reservestatus:ReserveStatusResponse
     auctionstatus:AuctionStatusResponse

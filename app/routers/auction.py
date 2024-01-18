@@ -5,8 +5,12 @@ from sqlalchemy.exc import IntegrityError
 from app.database import get_db
 from app import schemas, models, utils
 from typing import List
+from datetime import datetime
+import os 
+from dotenv import load_dotenv
 
-
+load_dotenv()
+BID_JUMP = os.getenv('BID_JUMP')
 
 router = APIRouter(
     prefix='/auctions',
@@ -22,6 +26,7 @@ async def all_auctions(db:Session=Depends(get_db), q:str|None=None):
         .join(models.ItemCategory, models.Auction.item_category == models.ItemCategory.category_id, isouter=True)
         .join(models.ReserveStatus, models.Auction.reserve_status == models.ReserveStatus.status_id, isouter=True)
         .join(models.AuctionStatus, models.Auction.auction_status == models.AuctionStatus.status_id, isouter=True)
+        .join(models.Bid, models.Auction.auction_id == models.Bid.auction_id, isouter=True)
         ).all()
     return auctions
 
@@ -33,11 +38,13 @@ async def get_auction(auction_id:int, db:Session=Depends(get_db)):
         .join(models.ItemCategory, models.Auction.item_category == models.ItemCategory.category_id, isouter=True)
         .join(models.ReserveStatus, models.Auction.reserve_status == models.ReserveStatus.status_id, isouter=True)
         .join(models.AuctionStatus, models.Auction.auction_status == models.AuctionStatus.status_id, isouter=True)
+        .join(models.Bid, models.Auction.auction_id == models.Bid.auction_id, isouter=True)
         ).options(
             joinedload(models.Auction.itemcategory),
             joinedload(models.Auction.reservestatus),
             joinedload(models.Auction.auctionstatus),
             joinedload(models.Auction.user),
+            joinedload(models.Auction.bids)
 
         ).filter(models.Auction.auction_id == auction_id).first()
     
@@ -81,3 +88,38 @@ async def cancel_auction(auction_id:int,cancel_auction:schemas.CancelAuction, db
 
     cancelled_auction = db.query(models.Auction).filter(models.Auction.auction_id == auction_id).first()
     return cancelled_auction, cancel_auction
+
+
+@router.get("/{auction_id}/bid", status_code=status.HTTP_201_CREATED)
+async def place_bid(auction_id:int, new_bid:schemas.NewBid, db:Session=Depends(get_db)):
+    auction = db.query(models.Auction).filter(models.Auction.auction_id == auction_id).first()
+
+    # check if the auction is ongoing; other statuses don't allow bids
+    if auction.auction_status != 1: # id of 'ongoing'
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You can only place bids for ongoing options")
+
+    # check if the bid is higher than the current highest bid
+    if new_bid <= auction.current_bid:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="A new bid must be higher than the current highest bid!")
+    
+    # check if the bid_jump is met (min amount allowd)
+    if (new_bid - auction.current_bid) <= BID_JUMP:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'Your bid should atleast Ksh.{BID_JUMP} higher than the current bid')
+    
+    
+    # check if the bid time is before auction end_time
+    bid_time = datetime.now()
+    if bid_time > auction.end_time:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'This auction has ended and is no longer accepting bids.')
+    
+    bid = models.Bid(**new_bid.model_dump())
+    try:
+        db.add(bid)
+        auction.current_bid = new_bid.amount
+        db.commit()
+        db.refresh(bid)
+        return {"Message:Bid placed successfully!"}
+    except Exception as e:
+        print(e)
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Error placing bid. Please try again")
