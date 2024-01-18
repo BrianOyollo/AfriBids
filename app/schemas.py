@@ -107,7 +107,7 @@ class GeneralAuctionResponse(BaseModel):
     end_time:datetime
     current_bid:float
     reserve_price:float
-    bids: BidResponse
+    bids: List[BidResponse]
     itemcategory:ItemCategoryResponse
     reservestatus:ReserveStatusResponse
     auctionstatus:AuctionStatusResponse
