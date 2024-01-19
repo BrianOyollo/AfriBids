@@ -4,47 +4,23 @@ from dateutil import parser
 from typing import Union, List
 
 
-#  bids
+#  for bids
 class NewBid(BaseModel):
     amount:float
-    
-class BidResponse(BaseModel):
-    bid_id:int
-    bidder: Union[int, 'UserOut']
-    auction_id:int
-    created_at:datetime
-    amount:float
 
-# users   
-class UserRegistration(BaseModel):
-    email:EmailStr
-    display_name:str
-    password:str
-
-class UserOut(BaseModel):
-    model_config: ConfigDict(from_attributes=True) 
-
+class BidderInfo(BaseModel):
     user_id:int
     username:str
     display_name:str
     location:str|None=None
     created_at:datetime
     is_active:bool
-    # bids:BidResponse
 
-class UpdateUserProfile(BaseModel):
-    display_name:str|None=None
-    email:EmailStr|None=None
-    phone:str|None=None
-    location:str|None=None
-
-class UserProfileOut(BaseModel):
-    username:str
-    display_name:str
-    email:EmailStr
-    phone:str|None=None
+class FullBidProfile(BaseModel):
+    bid_id:int
+    amount:float
     created_at:datetime
-    location:str|None=None
+    bidder:BidderInfo
 
 # item categories
 class ItemCategoryResponse(BaseModel):
@@ -97,21 +73,76 @@ class NewAuction(BaseModel):
     seller:int
 
 
-class GeneralAuctionResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
+class FullAuctionProfile(BaseModel):
     auction_id:int
     item_name:str
     item_description:str
     start_time:datetime
     end_time:datetime
     current_bid:float
-    reserve_price:float
-    bids: List[BidResponse]
     itemcategory:ItemCategoryResponse
     reservestatus:ReserveStatusResponse
     auctionstatus:AuctionStatusResponse
-    user:UserOut
+    bids: List[FullBidProfile]
+    user:BidderInfo # bidders
 
 class CancelAuction(BaseModel):
     reason:str|None=None
+
+
+
+
+
+
+# for user
+class UserAuctionData(BaseModel):
+    auction_id:int
+    item_name:str
+    item_description:str
+    end_time:datetime
+    current_bid:float
+    itemcategory:ItemCategoryResponse
+    reservestatus:ReserveStatusResponse
+    auctionstatus:AuctionStatusResponse
+
+class UserBidData(BaseModel):
+    bid_id:int
+    auction:UserAuctionData
+    created_at:datetime
+    amount:float
+
+class FullUserProfileUnAuthorized(BaseModel):
+    model_config: ConfigDict(from_attributes=True) 
+
+    user_id:int
+    username:str
+    display_name:str
+    location:str|None=None
+    created_at:datetime
+    is_active:bool
+    bids:List[UserBidData]
+    auctions:List[UserAuctionData]
+
+
+class FullUserProfileAuthorized(BaseModel):
+    user_id:int
+    username:str
+    display_name:str
+    email:EmailStr
+    phone:str|None=None
+    is_active:bool
+    created_at:datetime
+    location:str|None=None
+    bids:List[UserBidData]
+    auctions:List[UserAuctionData]
+
+class UpdateUserProfile(BaseModel):
+    display_name:str|None=None
+    email:EmailStr|None=None
+    phone:str|None=None
+    location:str|None=None
+
+class UserRegistration(BaseModel):
+    email:EmailStr
+    display_name:str
+    password:str

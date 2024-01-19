@@ -8,14 +8,13 @@ def test_get_all_auctions(client):
 
 def test_get_existing_auction(client, test_auction):
     response = client.get(f"/auctions/{test_auction['auction_id']}")
-    auction = schemas.GeneralAuctionResponse(**response.json())
+    auction = schemas.FullAuctionProfile(**response.json())
     
     assert response.status_code == 200
     assert auction.auction_id == test_auction['auction_id']
     assert auction.item_name == test_auction['item_name']
     assert auction.item_description == test_auction['item_description']
     assert auction.current_bid == test_auction['current_bid']
-    assert auction.reserve_price == test_auction['reserve_price']
     assert auction.itemcategory.category_id == test_auction['itemcategory']['category_id']
     assert auction.reservestatus.status_id == test_auction['reservestatus']['status_id']
     assert auction.auctionstatus.status_id == test_auction['auctionstatus']['status_id']
@@ -35,14 +34,13 @@ def test_create_auction(client,test_user,test_item_categories,test_auction_statu
         'seller':test_user['user_id']
     }
     response = client.post("/auctions/new", json=dummy_auction)
-    auction = schemas.GeneralAuctionResponse(**response.json())
+    auction = schemas.FullAuctionProfile(**response.json())
 
     assert response.status_code == 201
 
     assert auction.item_name == dummy_auction['item_name']
     assert auction.item_description == dummy_auction['item_description']
     assert auction.current_bid == 0
-    assert auction.reserve_price == dummy_auction['reserve_price']
     assert auction.itemcategory.category_id == dummy_auction['item_category']
     assert auction.reservestatus.status_id == dummy_auction['reserve_status']
     assert auction.auctionstatus.status_id == test_auction_statuses[0].status_id

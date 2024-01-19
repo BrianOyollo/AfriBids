@@ -51,6 +51,7 @@ class Auction(Base):
     item_description = Column(String, nullable=False)
     item_category = Column(Integer, ForeignKey("item_categories.category_id", ondelete='CASCADE'), nullable=False)
     start_time = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
+    # start_time = Column(TIMESTAMP(timezone=True), nullable=False, server_default=func.utcnow())
     end_time = Column(TIMESTAMP(timezone=True), nullable=False, server_default = func.now()+text("'7 days'"))
     current_bid = Column(Float, nullable=False, server_default=text('0.00'))
     reserve_status = Column(Integer, ForeignKey('reserve_status.status_id', ondelete='CASCADE'), nullable=False)

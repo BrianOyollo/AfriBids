@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Response, status, Depends, HTTPException
 from typing import List
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
 from app.database import get_db
 from app import schemas, models, utils
@@ -13,12 +13,12 @@ router = APIRouter(
     tags=['users']
 )
 
-@router.get("/", response_model=List[schemas.UserOut], status_code=status.HTTP_200_OK)
+@router.get("/", response_model=List[schemas.FullUserProfileUnAuthorized], status_code=status.HTTP_200_OK)
 async def get_all_users(db:Session = Depends(get_db)):
     users = db.query(models.User).all()
     return users
 
-@router.get("/{user_id}", response_model=schemas.UserOut, status_code=status.HTTP_200_OK)
+@router.get("/{user_id}", response_model=schemas.FullUserProfileUnAuthorized, status_code=status.HTTP_200_OK)
 async def get_user(user_id:int, db:Session=Depends(get_db)):
     user = db.query(models.User).filter(models.User.user_id == user_id).first()
 
@@ -43,7 +43,7 @@ async def register_user(new_user:schemas.UserRegistration, db:Session=Depends(ge
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User with that email already exists. Please try a different one")
     
 
-@router.get("/{user_id}/profile", response_model=schemas.UserProfileOut, status_code=status.HTTP_200_OK)
+@router.get("/{user_id}/profile", response_model=schemas.FullUserProfileAuthorized, status_code=status.HTTP_200_OK)
 async def get_user_profile(user_id:int, db:Session=Depends(get_db)):
     user_profile = db.query(models.User).filter(models.User.user_id==user_id).first()
 
@@ -53,7 +53,7 @@ async def get_user_profile(user_id:int, db:Session=Depends(get_db)):
     return user_profile
         
 
-@router.put("/{user_id}/profile/update", response_model=schemas.UserProfileOut, status_code=status.HTTP_200_OK)
+@router.put("/{user_id}/profile/update", response_model=schemas.FullUserProfileAuthorized, status_code=status.HTTP_200_OK)
 async def update_user_profile(user_id:int, profile_update:schemas.UpdateUserProfile, db:Session=Depends(get_db)):
     user_profile_query = db.query(models.User).filter(models.User.user_id==user_id)
     user_profile = user_profile_query.first()
