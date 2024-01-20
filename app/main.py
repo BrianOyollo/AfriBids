@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .routers import user,auction
+from .routers import user,auction, auction_constants
 
 
 
@@ -12,9 +12,10 @@ app = FastAPI(
 
 app.include_router(user.router)
 app.include_router(auction.router)
+app.include_router(auction_constants.router)
 
 @app.get("/")
 async def root():
-    return {'message':'Hellow from AfriBids!!'}
+    return {'message':'Hello from AfriBids!!'}
 
 

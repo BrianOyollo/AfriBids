@@ -37,7 +37,8 @@ async def register_user(new_user:schemas.UserRegistration, db:Session=Depends(ge
         db.refresh(user)
         return user
     
-    except IntegrityError:
+    except Exception as e:
+        print(e)
         db.rollback()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User with that email already exists. Please try a different one")
     
@@ -70,7 +71,7 @@ async def update_user_profile(user_id:int, profile_update:schemas.UpdateUserProf
         db.rollback()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{profile_update.email} is already in use. Please try a different email!")
         
-    return user_profile
+    return user_profile_query.first()
 
 @router.delete("/{user_id}/delete", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_account(user_id:int, db:Session=Depends(get_db)):
