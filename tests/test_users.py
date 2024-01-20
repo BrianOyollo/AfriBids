@@ -44,7 +44,7 @@ def test_creating_user_with_exisiting_email(client, test_user):
 
 def test_get_existing_user(client, test_user):
     response = client.get(f"/users/{test_user['user_id']}")
-    user = schemas.UserOut(**response.json())
+    user = schemas.FullUserProfileUnAuthorized(**response.json())
 
     assert response.status_code == 200
     assert user.user_id == test_user['user_id']
