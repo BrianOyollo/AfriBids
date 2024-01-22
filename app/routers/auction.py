@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Response, status, Depends, HTTPException
+from fastapi import APIRouter, Response, status, Depends, HTTPException, UploadFile, File
 from typing import List
 from sqlalchemy.orm import Session,joinedload
+from sqlalchemy import update
 from sqlalchemy.exc import IntegrityError
 from app.database import get_db
 from app import schemas, models, utils
@@ -93,7 +94,7 @@ async def cancel_auction(auction_id:int,cancel_auction:schemas.CancelAuction, db
 
 @router.post("/{auction_id}/bid", status_code=status.HTTP_201_CREATED)
 async def place_bid(auction_id:int, new_bid:schemas.NewBid, db:Session=Depends(get_db)):
-    auction = db.query(models.Auction).filter(models.Auction.auction_id == auction_id).first()
+    auction = db.query(models.Auction).filter(models.Auction.auction_id == auction_id).with_for_update().first()
     # check if the current user != seller
 
     # check if the auction is ongoing; other statuses don't allow bids
