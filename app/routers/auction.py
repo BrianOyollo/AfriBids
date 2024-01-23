@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Response, status, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Response, status, Depends, HTTPException, UploadFile, File, Form
 from typing import List
 from sqlalchemy.orm import Session,joinedload
 from sqlalchemy import update
@@ -18,6 +18,8 @@ router = APIRouter(
     prefix='/auctions',
     tags=['Auctions']
 )
+
+
 
 
 @router.get("/",response_model=List[schemas.FullAuctionProfile],status_code=status.HTTP_200_OK)
@@ -55,15 +57,23 @@ async def get_auction(auction_id:int, db:Session=Depends(get_db)):
     
     return auction
 
-@router.post("/new", response_model=schemas.FullAuctionProfile,status_code=status.HTTP_201_CREATED)
-async def new_auction(auction:schemas.NewAuction, db:Session=Depends(get_db)):
-    new_auction = models.Auction(**auction.model_dump())
+@router.post("/new",status_code=status.HTTP_201_CREATED)
+async def new_auction(auction:schemas.NewAuction = Depends(), images:list[UploadFile] = File(...), db:Session=Depends(get_db)):
 
     try:
-        db.add(new_auction)
+        auction_item = models.Auction(
+            item_name = auction.item_name,
+            item_description = auction.item_description,
+            item_category = auction.item_category,
+            reserve_status = auction.reserve_status,
+            reserve_price = auction.reserve_price,
+            seller = auction.seller
+        )
+        db.add(auction_item)
         db.commit()
-        db.refresh(new_auction)
-        return new_auction
+        db.refresh(auction_item)
+        await utils.upload_auction_images(db,images,auction_item.auction_id)
+        return auction_item
     
     except Exception as e:
         print(e)
