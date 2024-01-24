@@ -72,8 +72,9 @@ async def new_auction(auction:schemas.NewAuction = Depends(), images:list[Upload
         db.add(auction_item)
         db.commit()
         db.refresh(auction_item)
+        db_item = db.query(models.Auction).filter(models.Auction.auction_id == auction_item.auction_id).first()
         await utils.upload_auction_images(db,images,auction_item.auction_id)
-        return auction_item
+        return db_item
     
     except Exception as e:
         print(e)
