@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from app.database import get_db
 from app import schemas, models, utils
 from typing import List
+from marshmallow import Schema
 from datetime import datetime
 import os 
 import pytz
@@ -58,8 +59,7 @@ async def get_auction(auction_id:int, db:Session=Depends(get_db)):
     return auction
 
 @router.post("/new",status_code=status.HTTP_201_CREATED)
-async def new_auction(auction:schemas.NewAuction = Depends(), images:list[UploadFile] = File(...), db:Session=Depends(get_db)):
-
+async def new_auction(images:list[UploadFile]=File(...), auction:schemas.NewAuction = Depends(), db:Session=Depends(get_db)):
     try:
         auction_item = models.Auction(
             item_name = auction.item_name,
@@ -71,13 +71,25 @@ async def new_auction(auction:schemas.NewAuction = Depends(), images:list[Upload
         )
         db.add(auction_item)
         db.commit()
-        db.refresh(auction_item)
-        db_item = db.query(models.Auction).filter(models.Auction.auction_id == auction_item.auction_id).first()
         await utils.upload_auction_images(db,images,auction_item.auction_id)
-        return db_item
-    
+        db.refresh(auction_item)
+
+
+        new_auction = {
+            'auction_id':auction_item.auction_id,
+            'item_name':auction_item.item_name,
+            'item_description':auction_item.item_description,
+            'start_time':auction_item.start_time,
+            'end_time':auction_item.end_time,
+            'current_bid':auction_item.current_bid,
+            'itemcategory':auction_item.itemcategory,
+            'reservestatus':auction_item.reservestatus,
+            'auctionstatus':auction_item.auctionstatus,
+            'bids':auction_item.bids,
+        }
+
+        return new_auction
     except Exception as e:
-        print(e)
         db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Error creating an auction!')
 
@@ -141,6 +153,5 @@ async def place_bid(auction_id:int, new_bid:schemas.NewBid, db:Session=Depends(g
         db.refresh(bid)
         return {"Message:Bid placed successfully!"}
     except Exception as e:
-        print(e)
         db.rollback()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Error placing bid. Please try again")
