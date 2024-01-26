@@ -107,6 +107,7 @@ async def cancel_auction(auction_id:int,cancel_auction:schemas.CancelAuction, db
     try:
         auction.auction_status = 3 # or status_id for 'cancelled'
         db.commit()
+        
     except Exception:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error countered while cancelling the auction. Please try again")
