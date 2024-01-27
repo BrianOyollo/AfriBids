@@ -7,20 +7,19 @@ def test_get_all_auctions(client):
     response = client.get("/auctions")
     assert response.status_code == 200
 
-# def test_get_existing_auction(client, test_auction):
-#     response = client.get(f"/auctions/{test_auction['auction_id']}")
-#     auction = response.json()
-#     print(test_auction)
+def test_get_existing_auction(client, test_auction):
+    response = client.get(f"/auctions/{test_auction['auction_id']}")
+    auction = schemas.FullAuctionProfile(**response.json())
+    # print(auction)
     
-#     assert response.status_code == 200
-#     assert auction.auction_id == test_auction['auction_id']
-#     assert auction.item_name == test_auction['item_name']
-#     assert auction.item_description == test_auction['item_description']
-#     assert auction.current_bid == test_auction['current_bid']
-#     assert auction.itemcategory.category_id == test_auction['itemcategory']['category_id']
-#     assert auction.reservestatus.status_id == test_auction['reservestatus']['status_id']
-#     assert auction.auctionstatus.status_id == test_auction['auctionstatus']['status_id']
-#     assert auction.user.user_id == test_auction['user']['user_id']
+    assert response.status_code == 200
+    assert auction.auction_id == test_auction['auction_id']
+    assert auction.item_name == test_auction['item_name']
+    assert auction.item_description == test_auction['item_description']
+    assert auction.current_bid == test_auction['current_bid']
+    assert auction.itemcategory.category_id == test_auction['itemcategory']['category_id']
+    assert auction.reservestatus.status_id == test_auction['reservestatus']['status_id']
+    assert auction.auctionstatus.status_id == test_auction['auctionstatus']['status_id']
 
 def test_get_nonexistent_auction(client):
     response = client.get("/auctions/12")
@@ -43,7 +42,6 @@ def test_create_auction(client,test_user,test_item_categories,test_auction_statu
 
     assert response.status_code == 201
     auction_item = response.json()
-    print(auction_item)
 
     assert auction_item['item_name'] == dummy_auction['item_name']
     assert auction_item['item_description'] == dummy_auction['item_description']

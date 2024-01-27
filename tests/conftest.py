@@ -137,6 +137,9 @@ def test_auction(client, test_user,test_item_categories,test_auction_statuses, t
         'seller':test_user['user_id']
     }
     images = utils.generate_random_image()
-
-    response = client.post("/auctions/new", data=dummy_auction, files=images)
-    print(response)
+    files = {
+        'images':('dummy_image', images, 'image/jpeg')
+    }
+    response = client.post("/auctions/new", files=files, data=dummy_auction)
+    created_auction = response.json()
+    return created_auction

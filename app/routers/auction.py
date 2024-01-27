@@ -103,6 +103,7 @@ async def new_auction(images:list[UploadFile]=File(...), auction:schemas.NewAuct
         'reservestatus':auction_item.reservestatus,
         'auctionstatus':auction_item.auctionstatus,
         'bids':auction_item.bids,
+        'images':auction_item.images
     }
 
     return new_auction
