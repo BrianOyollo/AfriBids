@@ -83,7 +83,9 @@ def save_image_info(db, image_urls, auction_id):
     except Exception as error:
         db.rollback()
         raise error
-       
+
+
+
                     
 def generate_random_image():
     image = Image.new("RGB", (300, 300)) 
