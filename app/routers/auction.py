@@ -1,3 +1,4 @@
+from tempfile import NamedTemporaryFile
 from fastapi import APIRouter, Response, status, Depends, HTTPException, UploadFile, File, Form
 from typing import List
 from sqlalchemy.orm import Session,joinedload
@@ -10,10 +11,14 @@ from marshmallow import Schema
 from datetime import datetime
 import os 
 import pytz
+import boto3
 from dotenv import load_dotenv
 
 load_dotenv()
 BID_JUMP = os.getenv('BID_JUMP')
+ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_IMAGES_BUCKET = os.getenv('AFRIBIDS_IMAGES_BUCKET')
 
 router = APIRouter(
     prefix='/auctions',
@@ -32,6 +37,7 @@ async def all_auctions(db:Session=Depends(get_db), q:str|None=None):
         .join(models.ReserveStatus, models.Auction.reserve_status == models.ReserveStatus.status_id, isouter=True)
         .join(models.AuctionStatus, models.Auction.auction_status == models.AuctionStatus.status_id, isouter=True)
         .join(models.Bid, models.Auction.auction_id == models.Bid.auction_id, isouter=True)
+        .join(models.AuctionImages, models.Auction.auction_id == models.AuctionImages.auction_id, isouter=True)
         ).all()
     return auctions
 
@@ -44,12 +50,14 @@ async def get_auction(auction_id:int, db:Session=Depends(get_db)):
         .join(models.ReserveStatus, models.Auction.reserve_status == models.ReserveStatus.status_id, isouter=True)
         .join(models.AuctionStatus, models.Auction.auction_status == models.AuctionStatus.status_id, isouter=True)
         .join(models.Bid, models.Auction.auction_id == models.Bid.auction_id, isouter=True)
+        .join(models.AuctionImages, models.Auction.auction_id == models.AuctionImages.auction_id, isouter=True)
         ).options(
             joinedload(models.Auction.itemcategory),
             joinedload(models.Auction.reservestatus),
             joinedload(models.Auction.auctionstatus),
             joinedload(models.Auction.user),
-            joinedload(models.Auction.bids)
+            joinedload(models.Auction.bids),
+            joinedload(models.Auction.images)
 
         ).filter(models.Auction.auction_id == auction_id).first()
     
@@ -60,6 +68,9 @@ async def get_auction(auction_id:int, db:Session=Depends(get_db)):
 
 @router.post("/new",status_code=status.HTTP_201_CREATED)
 async def new_auction(images:list[UploadFile]=File(...), auction:schemas.NewAuction = Depends(), db:Session=Depends(get_db)):
+    if not images:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must provide at least one image for the auction')
+    
     try:
         auction_item = models.Auction(
             item_name = auction.item_name,
@@ -69,29 +80,34 @@ async def new_auction(images:list[UploadFile]=File(...), auction:schemas.NewAuct
             reserve_price = auction.reserve_price,
             seller = auction.seller
         )
-        db.add(auction_item)
+        db.add(auction_item)     
         db.commit()
-        await utils.upload_auction_images(db,images,auction_item.auction_id)
-        db.refresh(auction_item)
-
-
-        new_auction = {
-            'auction_id':auction_item.auction_id,
-            'item_name':auction_item.item_name,
-            'item_description':auction_item.item_description,
-            'start_time':auction_item.start_time,
-            'end_time':auction_item.end_time,
-            'current_bid':auction_item.current_bid,
-            'itemcategory':auction_item.itemcategory,
-            'reservestatus':auction_item.reservestatus,
-            'auctionstatus':auction_item.auctionstatus,
-            'bids':auction_item.bids,
-        }
-
-        return new_auction
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Error creating an auction!')
+    
+    upload_status, image_urls = utils.upload_to_cloudinary(images,auction_item.auction_id)
+    if upload_status == False:
+        incomplete_auction_item = db.query(models.Auction).filter(models.Auction.auction_id == auction_item.auction_id).delete(synchronize_session=False)
+        db.commit()
+
+    utils.save_image_info(db, image_urls,auction_item.auction_id)
+    new_auction = {
+        'auction_id':auction_item.auction_id,
+        'item_name':auction_item.item_name,
+        'item_description':auction_item.item_description,
+        'start_time':auction_item.start_time,
+        'end_time':auction_item.end_time,
+        'current_bid':auction_item.current_bid,
+        'itemcategory':auction_item.itemcategory,
+        'reservestatus':auction_item.reservestatus,
+        'auctionstatus':auction_item.auctionstatus,
+        'bids':auction_item.bids,
+    }
+
+    return new_auction
+    
+
 
     
 @router.put("/{auction_id}/cancel", status_code=status.HTTP_200_OK)

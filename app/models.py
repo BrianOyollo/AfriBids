@@ -70,7 +70,7 @@ class Auction(Base):
 class AuctionImages(Base):
     __tablename__='auction_images'
     image_id = Column(Integer, nullable=False, primary_key=True)
-    image_description = Column(Integer, nullable=True)
+    image_description = Column(String, nullable=True)
     image_url = Column(String, nullable=False)
     auction_id = Column(Integer, ForeignKey("auctions.auction_id", ondelete='CASCADE'), nullable=True)
 

@@ -84,6 +84,9 @@ class NewAuction:
     seller:int = Form(...)
 
 
+class AuctionImages(BaseModel):
+    image_description: str|None=None
+    image_url:str
 
 class FullAuctionProfile(BaseModel):
     auction_id:int
@@ -95,6 +98,7 @@ class FullAuctionProfile(BaseModel):
     itemcategory:ItemCategoryResponse
     reservestatus:ReserveStatusResponse
     auctionstatus:AuctionStatusResponse
+    images:List[AuctionImages]
     bids: List[FullBidProfile]
     user:BidderInfo # bidders
 
