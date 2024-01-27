@@ -50,7 +50,7 @@ def test_create_auction(client,test_user,test_item_categories,test_auction_statu
     assert auction_item['reservestatus']['status_id'] == dummy_auction['reserve_status']
     assert auction_item['auctionstatus']['status_id'] == test_auction_statuses[0].status_id
 
-# def test_cancel_auction(client,test_auction,):
-#     response = client.put(f"/auctions/{test_auction['auction_id']}/cancel", json={'reason':'i changed my mind'})
-#     assert response.status_code == 200
-#     assert response.json()[0]['auction_status'] == 3 
+def test_cancel_auction(client,test_auction,):
+    response = client.put(f"/auctions/{test_auction['auction_id']}/cancel", json={'reason':'i changed my mind'})
+    assert response.status_code == 200
+    assert response.json()[0]['auction_status'] == 3 
