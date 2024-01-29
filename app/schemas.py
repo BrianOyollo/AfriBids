@@ -1,7 +1,9 @@
 from pydantic import BaseModel, EmailStr, ConfigDict
+from dataclasses import dataclass
+from fastapi import Form
 from datetime import datetime
 from dateutil import parser
-from typing import Union, List
+from typing import Optional, Union, List
 
 
 #  for bids
@@ -64,14 +66,27 @@ class ReserveStatusResponse(BaseModel):
     status_description:str
 
 # auctions
-class NewAuction(BaseModel):
-    item_name:str
-    item_description:str
-    item_category:int
-    reserve_status:int
-    reserve_price:float|None=None
-    seller:int
+# class NewAuction(BaseModel):
+#     item_name:str
+#     item_description:str
+#     item_category:int
+#     reserve_status:int
+#     reserve_price:float|None=None
+#     seller:int
+    
+@dataclass
+class NewAuction:
+    item_name:str = Form(...)
+    item_description:str = Form(...)
+    item_category:int = Form(...)
+    reserve_status:int = Form(...)
+    reserve_price: float= Form(None)
+    seller:int = Form(...)
 
+
+class AuctionImages(BaseModel):
+    image_description: str|None=None
+    image_url:str
 
 class FullAuctionProfile(BaseModel):
     auction_id:int
@@ -83,6 +98,7 @@ class FullAuctionProfile(BaseModel):
     itemcategory:ItemCategoryResponse
     reservestatus:ReserveStatusResponse
     auctionstatus:AuctionStatusResponse
+    images:List[AuctionImages]
     bids: List[FullBidProfile]
     user:BidderInfo # bidders
 

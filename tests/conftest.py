@@ -7,7 +7,7 @@ import os
 from dotenv import load_dotenv
 from app.database import Base, get_db
 from app.main import app
-from app import models
+from app import models, utils
 
 
 load_dotenv()
@@ -52,6 +52,19 @@ def test_user(client):
     dummy_user = {
         "email":"testuser@gmail.com",
         "display_name":"testuser_123",
+        "password": "TestPassword123"
+    }
+
+    response = client.post("/users/new", json=dummy_user)
+    test_user = response.json()
+    test_user['password'] = dummy_user['password']
+    return test_user
+
+@pytest.fixture
+def test_user2(client):
+    dummy_user = {
+        "email":"testuser2@gmail.com",
+        "display_name":"testuser2",
         "password": "TestPassword123"
     }
 
@@ -136,7 +149,10 @@ def test_auction(client, test_user,test_item_categories,test_auction_statuses, t
         'reserve_price':39000,
         'seller':test_user['user_id']
     }
-
-    response = client.post("/auctions/new", json=dummy_auction)
+    images = utils.generate_random_image()
+    files = {
+        'images':('dummy_image', images, 'image/jpeg')
+    }
+    response = client.post("/auctions/new", files=files, data=dummy_auction)
     created_auction = response.json()
     return created_auction
