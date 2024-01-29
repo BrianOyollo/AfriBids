@@ -98,6 +98,7 @@ async def new_auction(images:list[UploadFile]=File(...), auction:schemas.NewAuct
         'item_description':auction_item.item_description,
         'start_time':auction_item.start_time,
         'end_time':auction_item.end_time,
+        'reserve_price':auction_item.reserve_price,
         'current_bid':auction_item.current_bid,
         'itemcategory':auction_item.itemcategory,
         'reservestatus':auction_item.reservestatus,
