@@ -54,3 +54,9 @@ def test_cancel_auction(client,test_auction,):
     response = client.put(f"/auctions/{test_auction['auction_id']}/cancel", json={'reason':'i changed my mind'})
     assert response.status_code == 200
     assert response.json()[0]['auction_status'] == 3 
+
+def test_cancel_non_existent_auction(client):
+    response = client.put(f"/auctions/1/cancel", json={'reason':'i changed my mind'})
+    assert response.status_code == 404
+
+
