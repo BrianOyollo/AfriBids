@@ -71,6 +71,7 @@ def test_successful_bid(client, test_auction, test_user2, TestSession):
 
     bid = TestSession.query(models.Bid).filter(models.Bid.auction_id == test_auction['auction_id']).first()
     assert bid.auction_id == test_auction['auction_id']
+    assert bid.bidder_id == test_user2['user_id']
     assert bid.amount == 40000
     assert (bid.amount - test_auction['reserve_price']) >= 50
 
