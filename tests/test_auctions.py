@@ -59,4 +59,17 @@ def test_cancel_non_existent_auction(client):
     response = client.put(f"/auctions/1/cancel", json={'reason':'i changed my mind'})
     assert response.status_code == 404
 
+def test_bid_on_non_existent_auction(client):
+    response = client.post("/auctions/1232/bid", json={'amount':1500})
+    assert response.status_code == 404
+
+def test_successful_bid(client, test_auction, test_user2, TestSession):
+    auction_id = test_auction['auction_id']
+    response = client.post(f"/auctions/{auction_id}/bid", json={'amount':40000}) # reserve price of test_auction is 39k
+
+    assert response.status_code == 201
+
+    bid = TestSession.query(models.Bid).filter(models.Bid.auction_id == test_auction['auction_id']).first()
+    assert bid.auction_id == test_auction['auction_id']
+    assert bid.amount == 40000
 

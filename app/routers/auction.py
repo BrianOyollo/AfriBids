@@ -135,8 +135,15 @@ async def cancel_auction(auction_id:int,cancel_auction:schemas.CancelAuction, db
 
 @router.post("/{auction_id}/bid", status_code=status.HTTP_201_CREATED)
 async def place_bid(auction_id:int, new_bid:schemas.NewBid, db:Session=Depends(get_db)):
+    
     auction = db.query(models.Auction).filter(models.Auction.auction_id == auction_id).with_for_update().first()
+    if auction == None:
+        raise  HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Auction with ID {auction_id} does not exist!")
+    
     # check if the current user != seller
+    # bidder_id = None # will get this from id of the current_user
+    # if auction.seller == bidder_id: 
+    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You can't bid on your your item!")
 
     # check if the auction is ongoing; other statuses don't allow bids
     if auction.auction_status != 1: # id of 'ongoing'
@@ -163,7 +170,7 @@ async def place_bid(auction_id:int, new_bid:schemas.NewBid, db:Session=Depends(g
     
     bid = models.Bid(**new_bid.model_dump())
     bid.auction_id = auction_id
-    bid.bidder_id = 1 # will get this from id of the current_user
+    bid.bidder_id = 2 # will change to current user's ID 
     try:
         db.add(bid)
         auction.current_bid = new_bid.amount

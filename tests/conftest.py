@@ -60,6 +60,19 @@ def test_user(client):
     test_user['password'] = dummy_user['password']
     return test_user
 
+@pytest.fixture
+def test_user2(client):
+    dummy_user = {
+        "email":"testuser2@gmail.com",
+        "display_name":"testuser2",
+        "password": "TestPassword123"
+    }
+
+    response = client.post("/users/new", json=dummy_user)
+    test_user = response.json()
+    test_user['password'] = dummy_user['password']
+    return test_user
+
 
 @pytest.fixture
 def test_item_categories(TestSession):
