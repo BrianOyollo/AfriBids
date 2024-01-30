@@ -14,6 +14,7 @@ from tempfile import NamedTemporaryFile
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+from passlib.context import CryptContext
 
 load_dotenv()
 
