@@ -98,5 +98,11 @@ def generate_random_image():
 
 
 # security
-def hash_passwords(raw_password):
+
+### password hashing
+def hash_passwords(raw_password:str):
     return passwordd_context.hash(raw_password)
+
+### logins
+def login():
+    pass
