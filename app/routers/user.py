@@ -29,6 +29,8 @@ async def get_user(user_id:int, db:Session=Depends(get_db)):
 
 @router.post("/new", status_code=status.HTTP_201_CREATED)
 async def register_user(new_user:schemas.UserRegistration, db:Session=Depends(get_db)):
+    hashed_password = utils.hash_passwords(new_user.password)
+    new_user.password = hashed_password
     user = models.User(**new_user.model_dump())
     user.username = utils.generate_unique_username(db, user.display_name)
     try:

@@ -18,7 +18,7 @@ def test_create_user(client):
     assert response.status_code == 201
     assert created_user['email'] == dummy_user['email']
     assert created_user['display_name'] == dummy_user['display_name']
-    assert created_user['password'] == dummy_user['password']
+    # assert created_user['password'] == dummy_user['password']
     assert created_user['is_staff'] == False
     assert created_user['is_active'] == True
 
@@ -75,12 +75,12 @@ def test_create_users_with_similar_display_names(client):
     assert response2.status_code == 201
     assert created_user['email'] == dummy_user1['email']
     assert created_user['display_name'] == dummy_user1['display_name']
-    assert created_user['password'] == dummy_user1['password']
+    # assert created_user['password'] == dummy_user1['password']
     assert created_user['is_staff'] == False
     assert created_user['is_active'] == True
     assert created_user2['email'] == dummy_user2['email']
     assert created_user2['display_name'] == dummy_user2['display_name']
-    assert created_user2['password'] == dummy_user2['password']
+    # assert created_user2['password'] == dummy_user2['password']
     assert created_user2['is_staff'] == False
     assert created_user2['is_active'] == True
     assert second_username != first_username

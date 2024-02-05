@@ -14,6 +14,7 @@ from tempfile import NamedTemporaryFile
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+from passlib.context import CryptContext
 
 load_dotenv()
 
@@ -24,20 +25,17 @@ cloudinary_api_key = os.getenv('CLOUDINARY_API_KEY')
 cloudinary_secret_key = os.getenv('CLOUDINARY_API_SECRET')
 cloudinary_cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME')
 
-# Set configuration parameter: return "https" URLs by setting secure=True  
-# ==============================
 config = cloudinary.config(
         cloud_name = cloudinary_cloud_name,
         api_key = cloudinary_api_key,
         api_secret = cloudinary_secret_key,
         secure=True
     )
+passwordd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 
 
-
-
-
+# generate unique username
 def generate_unique_username(db, display_name):
     base_username = display_name.lower().replace(' ', '_')
     suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=4))
@@ -50,6 +48,12 @@ def generate_unique_username(db, display_name):
         existing_user = db.query(models.User).filter(models.User.username == potential_username).first()
 
     return potential_username
+
+
+# image uploads to cloudinary
+
+# Set configuration parameter: return "https" URLs by setting secure=True  
+# ==============================
 
 def upload_to_cloudinary(images, auction_id):
     if not images:
@@ -84,8 +88,6 @@ def save_image_info(db, image_urls, auction_id):
         db.rollback()
         raise error
 
-
-
                     
 def generate_random_image():
     image = Image.new("RGB", (300, 300)) 
@@ -93,3 +95,14 @@ def generate_random_image():
     image.save(image_stream, format='JPEG')
     image_stream.seek(0)
     return image_stream
+
+
+# security
+
+### password hashing
+def hash_passwords(raw_password:str):
+    return passwordd_context.hash(raw_password)
+
+### logins
+def login():
+    pass
